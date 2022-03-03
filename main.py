@@ -1,11 +1,29 @@
 from modules.loan import Loans
+from os.path import exists
+import re
+
+'''
+Galima:
+Įvesti naują paskolą;
+Pažiūrėti, kiek paskolų iš viso (įrašoma/skaitoma csv failas)
+Gauti pasirinktos paskolos suvestinę ir mokėjimų grafiką (tuo pačiu sugeneruojamas ir mokėjimų grafiko csv failas)
+Yra tikrinimas ar su pasirinktu ID paskola egzistuoja (perspektyvoje galima realizuoti redagavimą/trynimą)
+'''
+
 loans = Loans()
 
-loans.append((100, 1000, 10, 10))
-loans.append((101, 10000, 100, 7))
-loans.append((102, 500, 6, 18))
-loans.append((103, 100, 3, 25))
-loans.append((104, 1000, 10, 10))
+if exists('myloans.csv'):
+  with open('myloans.csv', 'r') as file:
+    for row in file:
+      row = re.sub('[^0-9,]+', '', row)
+      loans.append(tuple(map(int, row.split(','))))
+
+# Sample data generation
+# loans.append((100, 1000, 10, 10))
+# loans.append((101, 10000, 100, 7))
+# loans.append((102, 500, 6, 18))
+# loans.append((103, 100, 3, 25))
+# loans.append((104, 1000, 10, 10))
 
 main_menu_items = {
   1: 'New loan',
@@ -19,13 +37,23 @@ def main_menu():
     print(key, '-', main_menu_items[key])
 
 def new_loan():
+  loan_ids = []
+  for loan in loans.book:
+    loan_ids.append(loan[0])
   l_id = int(input("Enter loan id: "))
-  loan = int(input("Enter loan ammount: "))
-  term = int(input("Enter loan term (months): "))
-  interest = float(input("Enter yearly interest rate: "))
-  loans.append((l_id, loan, term, interest))
-  print(f'Loan {l_id} ammount is €{loan}, term is {term} months, yearly interest rate is {interest}%')
-  return
+  if l_id in loan_ids:
+    print(f'Lon with id {l_id} already exists. You can edit it with EDIT menu (O sukurti nespėjau :)')
+    return
+  else:
+    loan = int(input("Enter loan ammount: "))
+    term = int(input("Enter loan term (months): "))
+    interest = float(input("Enter yearly interest rate: "))
+    loans.append((l_id, loan, term, interest))
+    print(f'Loan {l_id} ammount is €{loan}, term is {term} months, yearly interest rate is {interest}%')
+    with open('myloans.csv', 'a') as file:
+      for loan in loans.book:
+        file.write(f'{str(loan)}\n')
+    return
 
 def list_loans():
   for loan in loans.book:
@@ -110,3 +138,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+    
